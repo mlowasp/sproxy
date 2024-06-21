@@ -1,6 +1,6 @@
 # SPROXY
 
-![SPROXY logo](https://myoctocat.com/assets/images/base-octocat.svg)
+![SPROXY logo](https://raw.githubusercontent.com/mlowasp/sproxy/main/logo/sproxy.png)
 
 ## About
 
