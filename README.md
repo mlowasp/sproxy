@@ -153,6 +153,7 @@ wpscan -v --proxy socks5://127.0.0.1:1080 --proxy-auth username:password --url h
 - multiple user support
 - mysql database based configuration
 - web based frontend
+- hash-based passwords
 
 ## License
 
