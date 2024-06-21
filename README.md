@@ -1,5 +1,7 @@
 # SPROXY
 
+![SPROXY logo](https://myoctocat.com/assets/images/base-octocat.svg)
+
 ## About
 
 SPROXY is a high-performance socks4/socks5 proxy load-balancer. 
