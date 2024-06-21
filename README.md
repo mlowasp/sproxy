@@ -138,6 +138,8 @@ You can test SPROXY using curl, every time curl is executed, a random TOR circui
 curl --socks5 127.0.0.1:1080 -U username:password http://ip-api.com
 ```
 
+## Proxy load balancing for various tools
+
 Some tools can't be used with proxychains, but you can use SPROXY instead. Here is an example using wpscan:
 
 ```
