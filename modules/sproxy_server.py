@@ -83,17 +83,32 @@ class LoadBalancer(StreamRequestHandler):
                 try:                    
                     if self.load_balancing_mode == "random" or self.load_balancing_mode == "leastconn":
                         proxy = random.choice(self.backends)
-                        proxy = proxy.split("socks5://")[1]
-                        if proxy.find("@") >= 0:
-                            proxy_hostname = proxy.split("@")[1].split(":")[0]
-                            proxy_port = int(proxy.split("@")[1].split(":")[1])
-                            proxy_username = proxy.split("@")[0].split(":")[0]
-                            proxy_password = proxy.split("@")[0].split(":")[1]
-                            remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port, True, proxy_username, proxy_password)
-                        else:
-                            proxy_hostname = proxy.split(":")[0]
-                            proxy_port = int(proxy.split(":")[1])
-                            remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port)
+                        if proxy.find("socks5://") >= 0:
+                            proxy = proxy.split("socks5://")[1]
+                            if proxy.find("@") >= 0:
+                                proxy_hostname = proxy.split("@")[1].split(":")[0]
+                                proxy_port = int(proxy.split("@")[1].split(":")[1])
+                                proxy_username = proxy.split("@")[0].split(":")[0]
+                                proxy_password = proxy.split("@")[0].split(":")[1]
+                                remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port, True, proxy_username, proxy_password)
+                            else:
+                                proxy_hostname = proxy.split(":")[0]
+                                proxy_port = int(proxy.split(":")[1])
+                                remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port)
+                        
+                        if proxy.find("socks4://") >= 0:
+                            proxy = proxy.split("socks4://")[1]
+                            if proxy.find("@") >= 0:
+                                proxy_hostname = proxy.split("@")[1].split(":")[0]
+                                proxy_port = int(proxy.split("@")[1].split(":")[1])
+                                proxy_username = proxy.split("@")[0].split(":")[0]
+                                proxy_password = proxy.split("@")[0].split(":")[1]
+                                remote.set_proxy(socks.SOCKS4, proxy_hostname, proxy_port, True, proxy_username, proxy_password)
+                            else:
+                                proxy_hostname = proxy.split(":")[0]
+                                proxy_port = int(proxy.split(":")[1])
+                                remote.set_proxy(socks.SOCKS4, proxy_hostname, proxy_port)
+                                
                 except:
                     if self.log_level:
                         logging.info('Failed to select backend. Dropping connection...')

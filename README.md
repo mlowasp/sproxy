@@ -11,7 +11,7 @@ SPROXY is a high-performance socks4/socks5 proxy load-balancer.
 SPROXY will start a socks5 proxy server on the configured listen IPv4 and port. It will then forward everything to the configured backend proxy servers.
 
 ```
-<source> <====> <SPROXY> <===> <random_socks5_proxy> <===> <target>
+<source> <====> <SPROXY> <===> <random_socks_proxy> <===> <target>
 ``` 
 
 You can test SPROXY using curl:
@@ -149,3 +149,11 @@ Some tools can't be used with proxychains, but you can use SPROXY instead. Here 
 ```
 wpscan -v --proxy socks5://127.0.0.1:1080 --proxy-auth username:password --url http://target.tld
 ```
+
+## TODO
+
+- bandwidth monitoring
+- bandwidth quotas
+- multiple user support
+- mysql database based configuration
+- web based frontend
