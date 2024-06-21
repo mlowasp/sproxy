@@ -57,7 +57,7 @@ BACKEND0=socks5://username:password@ipv4:port1
 BACKEND1=socks5://username:password@ipv4:port2
 ```
 
-If you want to use sha512 hashes for your user's password; use AUTH_SHA512=true and use the sha512 hex as the password, ie:
+If you want to use sha512 hashes for your user's password; use AUTH_SHA512=true and use the sha512 hex of the password in the config file, ie:
 
 ```
 # optional (remove or leave empty for no authentication)
