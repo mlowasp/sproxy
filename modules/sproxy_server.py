@@ -224,8 +224,8 @@ def main(config):
             listen_ip = config["frontend"]["LISTEN_IP"]
         if "LISTEN_PORT" in config["frontend"]:
             listen_port = config["frontend"]["LISTEN_PORT"]
-        if "SOCKS_VERSION" in config["frontend"]:
-            socks_version = config["frontend"]["SOCKS_VERSION"]
+        # if "SOCKS_VERSION" in config["frontend"]:
+        #     socks_version = config["frontend"]["SOCKS_VERSION"]
 
     backends = []
     if "backend" in config:

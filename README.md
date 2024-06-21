@@ -36,9 +36,6 @@ LOAD_BALANCING_MODE=leastconn
 
 [frontend]
 
-# available socks versions: 4, 5
-SOCKS_VERSION=5
-
 LISTEN_IP=127.0.0.1
 LISTEN_PORT=1080
 
@@ -106,9 +103,6 @@ LOG_FILENAME=/var/log/sproxy.log
 LOAD_BALANCING_MODE=random
 
 [frontend]
-
-# available socks versions: 4, 5
-SOCKS_VERSION=5
 
 LISTEN_IP=127.0.0.1
 LISTEN_PORT=1080
