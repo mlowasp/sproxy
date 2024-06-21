@@ -1,4 +1,4 @@
-# SPROXY - high-performance socks4/socks5 proxy load-balancer
+# SPROXY
 
 ## About
 
@@ -91,7 +91,7 @@ SocksPort 9059 # Default: Bind to localhost:9059 for local connections.
 #...
 ```
 
-You can use SPROXY to load-balance every tcp connection to a random TOR circuit using the following sproxy.conf file:
+You can use SPROXY to load-balance every incoming tcp connection to a random TOR circuit using the following sproxy.conf file:
 
 ```
 [settings]
@@ -140,4 +140,10 @@ You can test SPROXY using curl, every time curl is executed, a random TOR circui
 
 ```
 curl --socks5 127.0.0.1:1080 -U username:password http://ip-api.com
+```
+
+You can use SPROXY with other tools, such as wpscan:
+
+```
+wpscan -v --proxy socks5://127.0.0.1:1080 --url http://target.tld
 ```
