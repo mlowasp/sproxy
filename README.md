@@ -153,3 +153,7 @@ wpscan -v --proxy socks5://127.0.0.1:1080 --proxy-auth username:password --url h
 - multiple user support
 - mysql database based configuration
 - web based frontend
+
+## License
+
+SPROXY is released under the MIT license and was written by Maxime Labelle <maxime.labelle@owasp.org>
