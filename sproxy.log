@@ -1,0 +1,25 @@
+INFO:root:Accepting connection from 127.0.0.1:54476
+INFO:root:Failed to select backend. Dropping connection
+INFO:root:Accepting connection from 127.0.0.1:49938
+INFO:root:Failed to select backend. Dropping connection...
+INFO:root:Accepting connection from 127.0.0.1:48424
+INFO:root:Failed to select backend. Dropping connection...
+INFO:root:Accepting connection from 127.0.0.1:43260
+INFO:root:Failed to select backend. Dropping connection...
+INFO:root:Accepting connection from 127.0.0.1:41064
+INFO:root:Failed to select backend. Dropping connection...
+INFO:root:Accepting connection from 127.0.0.1:46698
+INFO:root:random
+INFO:root:Failed to select backend. Dropping connection...
+INFO:root:Accepting connection from 127.0.0.1:54180
+INFO:root:random
+INFO:root:proxy:socks5://127.0.0.1:9059
+INFO:root:Failed to select backend. Dropping connection...
+INFO:root:Accepting connection from 127.0.0.1:56800
+INFO:root:random
+INFO:root:proxy:127.0.0.1:9057
+INFO:root:Connected to 208.95.112.1 80
+INFO:root:Accepting connection from 127.0.0.1:42938
+INFO:root:random
+INFO:root:proxy:127.0.0.1:9051
+INFO:root:Connected to 208.95.112.1 80

@@ -4,6 +4,7 @@ import socket
 import struct
 import socks
 import sys
+import random
 
 from socketserver import ThreadingMixIn, TCPServer, StreamRequestHandler
 from . import sproxy_console as Console
@@ -14,7 +15,7 @@ class ThreadingTCPServer(ThreadingMixIn, TCPServer):
     # much faster rebinding
     allow_reuse_address = True
 
-    def __init__(self, server_address, RequestHandlerClass, args = []):
+    def __init__(self, server_address, RequestHandlerClass, args = {}):
         TCPServer.__init__(self, server_address, RequestHandlerClass)
         self.args = args        
 
@@ -75,10 +76,10 @@ class LoadBalancer(StreamRequestHandler):
         try:
             if cmd == 1:  # CONNECT
                 remote = socks.socksocket()
-                try:
+                try:                    
                     if self.load_balancing_mode == "random":
-                        proxy = random.choice(self.backends)                    
-                        proxy = proxy.split("socks5://")[1]                    
+                        proxy = random.choice(self.backends)
+                        proxy = proxy.split("socks5://")[1]
                         if proxy.find("@") >= 0:
                             proxy_hostname = proxy.split("@")[1].split(":")[0]
                             proxy_port = int(proxy.split("@")[1].split(":")[1])
@@ -91,7 +92,7 @@ class LoadBalancer(StreamRequestHandler):
                             remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port)
                 except:
                     if self.log_level:
-                        logging.info('Failed to select backend. Dropping connection')
+                        logging.info('Failed to select backend. Dropping connection...')
                         self.server.close_request(self.request)
                         return
 
