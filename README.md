@@ -42,6 +42,8 @@ LISTEN_PORT=1080
 # optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
 AUTH_PASSWORD=password
+# possible values: true|false
+AUTH_SHA512=false
 
 [backend]
 
@@ -53,6 +55,16 @@ AUTH_PASSWORD=password
 
 BACKEND0=socks5://username:password@ipv4:port1
 BACKEND1=socks5://username:password@ipv4:port2
+```
+
+If you want to use sha512 hashes for your user's password; use AUTH_SHA512=true and use the sha512 hex as the password, ie:
+
+```
+# optional (remove or leave empty for no authentication)
+AUTH_USERNAME=username
+# the password is: password
+AUTH_PASSWORD=b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86
+AUTH_SHA512=true
 ```
 
 ### Example using TOR
@@ -110,6 +122,8 @@ LISTEN_PORT=1080
 # optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
 AUTH_PASSWORD=password
+# possible values: true|false
+AUTH_SHA512=false
 
 [backend]
 
@@ -153,7 +167,6 @@ wpscan -v --proxy socks5://127.0.0.1:1080 --proxy-auth username:password --url h
 - multiple user support
 - mysql database based configuration
 - web based frontend
-- hash-based passwords
 
 ## License
 
