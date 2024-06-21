@@ -1,0 +1,10 @@
+[Unit]
+Description=sproxy load-balancer
+
+[Service]
+ExecStart=/usr/bin/python3 /home/gninghaye/eshare/e_share.py
+WorkingDirectory=/home/gninghaye/eshare
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
