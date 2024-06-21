@@ -77,7 +77,7 @@ class LoadBalancer(StreamRequestHandler):
             if cmd == 1:  # CONNECT
                 remote = socks.socksocket()
                 try:                    
-                    if self.load_balancing_mode == "random":
+                    if self.load_balancing_mode == "random" or self.load_balancing_mode == "leastconn":
                         proxy = random.choice(self.backends)
                         proxy = proxy.split("socks5://")[1]
                         if proxy.find("@") >= 0:
