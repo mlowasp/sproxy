@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import sys
 import time
@@ -11,7 +9,7 @@ from modules import sproxy_console as Console
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser("sproxy")
-    parser.add_argument("--config", help="<file> to be used as the configuration file.", required=False, default="etc/sproxy.conf")
+    parser.add_argument("--config", help="<file> to be used as the configuration file.", required=False, default="/etc/sproxy/sproxy.conf")
     args = parser.parse_args()
 
     config = configparser.ConfigParser()

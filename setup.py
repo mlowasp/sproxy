@@ -5,7 +5,7 @@ setup(
     author_email='maxime.labelle@owasp.org', 
     description='sproxy is a high-performance socks4/socks5 proxy load-balancer',
     scripts=['sproxy.py'],
-    data_files=[('/etc/systemd/system', ['sproxy.service']), ('/etc/sproxy', ['etc/sproxy.conf'])], 
+    data_files=[('/etc/systemd/system', ['etc/sproxy.service']), ('/etc/sproxy', ['etc/sproxy/sproxy.conf'])], 
     install_requires=['PySocks','termcolor', 'configparser'],
     classifiers=[
         "License :: OSI Approved :: MIT License",
