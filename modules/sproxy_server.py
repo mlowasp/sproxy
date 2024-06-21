@@ -142,7 +142,7 @@ class LoadBalancer(StreamRequestHandler):
         password_len = ord(self.connection.recv(1))
         password = self.connection.recv(password_len).decode('utf-8')
 
-        if not self.auth or ( username == self.username and password == self.password ):
+        if not self.auth or ( self.auth and username == self.username and password == self.password ):
             # success, status = 0
             response = struct.pack("!BB", version, 0)
             self.connection.sendall(response)
