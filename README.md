@@ -67,6 +67,8 @@ AUTH_PASSWORD=b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980
 AUTH_SHA512=true
 ```
 
+You can (use this tool to generate sha512 hash)[https://emn178.github.io/online-tools/sha512.html]
+
 ### Example using TOR
 
 Let's say you have the following TOR circuits setup in your /etc/tor/torrc configuration file:
