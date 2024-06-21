@@ -142,8 +142,8 @@ You can test SPROXY using curl, every time curl is executed, a random TOR circui
 curl --socks5 127.0.0.1:1080 -U username:password http://ip-api.com
 ```
 
-You can use SPROXY with other tools, such as wpscan:
+Some tools can't be used with proxychains, but you can use SPROXY instead. Here is an example using wpscan:
 
 ```
-wpscan -v --proxy socks5://127.0.0.1:1080 --url http://target.tld
+wpscan -v --proxy socks5://127.0.0.1:1080 --proxy-auth username:password --url http://target.tld
 ```
