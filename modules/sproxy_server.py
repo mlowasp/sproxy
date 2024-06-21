@@ -44,8 +44,12 @@ class LoadBalancer(StreamRequestHandler):
         # get available methods
         methods = self.get_available_methods(nmethods)
 
+        self.auth = False
+        if self.username and self.password:
+            self.auth = True
+
         # accept only USERNAME/PASSWORD auth
-        if 2 not in set(methods):
+        if self.auth and 2 not in set(methods):
             # close connection
             self.server.close_request(self.request)
             return
@@ -138,7 +142,7 @@ class LoadBalancer(StreamRequestHandler):
         password_len = ord(self.connection.recv(1))
         password = self.connection.recv(password_len).decode('utf-8')
 
-        if username == self.username and password == self.password:
+        if not self.auth or ( username == self.username and password == self.password ):
             # success, status = 0
             response = struct.pack("!BB", version, 0)
             self.connection.sendall(response)
