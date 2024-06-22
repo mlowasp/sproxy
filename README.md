@@ -50,7 +50,8 @@ DATABASE_PASSWORd=password
 # possible values: config|database
 BACKEND_MODE=config
 
-# possible values: config|database
+# possible values: none|config|database
+# set to "none" to disable authentication
 AUTH_MODE=config
 
 # possible values: true|false
@@ -61,7 +62,6 @@ AUTH_SHA512=false
 LISTEN_IP=127.0.0.1
 LISTEN_PORT=1080
 
-# optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
 AUTH_PASSWORD=password
 
