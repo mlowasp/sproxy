@@ -28,7 +28,7 @@ curl --socks5 127.0.0.1:1080 -U username:password http://ip-api.com
 
 ## Configuration
 
-The configuration file is pretty straightforward:
+The configuration file is pretty straightforward (/etc/sproxy/sproxy.conf):
 
 ```
 [settings]
