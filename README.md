@@ -14,6 +14,12 @@ SPROXY will start a socks5 proxy server on the configured listen IPv4 and port. 
 <source> <====> <SPROXY> <===> <random_socks_proxy> <===> <target>
 ``` 
 
+SPROXY will be installed as a service:
+
+```
+service sproxy start
+```
+
 You can test SPROXY using curl:
 
 ```
