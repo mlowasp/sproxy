@@ -47,6 +47,12 @@ DATABASE_DBNAME=sproxy
 DATABASE_USERNAME=sproxy
 DATABASE_PASSWORd=password
 
+# possible values: config|database
+BACKEND_MODE=config
+
+# possible values: config|database
+AUTH_MODE=config
+
 [frontend]
 
 LISTEN_IP=127.0.0.1
@@ -61,9 +67,6 @@ AUTH_SCRYPT=false
 
 # change this if using scrypt
 AUTH_SCRYPT_SALT=
-
-# possible values: config|database
-AUTH_MODE=config
 
 [backend]
 
@@ -244,6 +247,12 @@ LOG_FILENAME=/var/log/sproxy.log
 # available load balancing modes are: leastconn, random
 LOAD_BALANCING_MODE=random
 
+# possible values: config|database
+BACKEND_MODE=config
+
+# possible values: config|database
+AUTH_MODE=config
+
 [frontend]
 
 LISTEN_IP=127.0.0.1
@@ -252,10 +261,12 @@ LISTEN_PORT=1080
 # optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
 AUTH_PASSWORD=password
+
 # possible values: true|false
-AUTH_SHA512=false
-# possible values: config|database
-AUTH_MODE=config
+AUTH_SCRYPT=false
+
+# change this if using scrypt
+AUTH_SCRYPT_SALT=
 
 [backend]
 
@@ -286,7 +297,7 @@ curl --socks5 127.0.0.1:1080 -U username:password http://ip-api.com
 
 ## Proxy load balancing for various tools
 
-Some tools can't be used with proxychains, but you can use SPROXY instead. Here is an example using wpscan:
+Some tools can't be used with proxychains, but sometimes you can use SPROXY instead. Here is an example using wpscan:
 
 ```
 wpscan -v --proxy socks5://127.0.0.1:1080 --proxy-auth username:password --url http://target.tld

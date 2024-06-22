@@ -7,6 +7,7 @@ import sys
 import random
 import hashlib
 import scrypt
+import mysql.connector
 
 from socketserver import ThreadingMixIn, TCPServer, StreamRequestHandler
 from . import sproxy_console as Console
@@ -35,7 +36,49 @@ class LoadBalancer(StreamRequestHandler):
         self.password = self.server.args["auth_password"]
         self.auth_scrypt = self.server.args["auth_scrypt"]
         self.auth_scrypt_salt = self.server.args["auth_scrypt_salt"]
+        self.auth_mode = self.server.args["auth_mode"]
+        self.backend_mode = self.server.args["backend_mode"]
+        self.database_mode = self.server.args["database_mode"]
+        self.database_port = self.server.args["database_port"]
+        self.database_hostname = self.server.args["database_hostname"]
+        self.database_username = self.server.args["database_username"]
+        self.database_password = self.server.args["database_password"]
+        self.database_dbname = self.server.args["database_dbname"]
         
+        if self.auth_mode == 'database' or self.backend_mode == 'database':
+            self.cnx = mysql.connector.connect(user=self.database_username, password=self.database_password,
+                    host=self.database_hostname,
+                    port=self.database_port,
+                    database=self.database_dbname)
+
+        if self.backend_mode == 'database':
+            sql = "SELECT id, proxy FROM backends"
+            try:
+                self.cursor = self.cnx.cursor()
+                self.cursor.execute(sql)
+                backends = []
+                for (id, proxy) in self.cursor:
+                    backends.append(proxy)
+                
+                a = set(backends)
+                b = set(self.backends)
+                if a != b:
+                    self.backends = backends
+                    self.connection_manager = {}
+                    for backend in self.backends:
+                        self.connection_manager[backend] = 0
+
+            except mysql.connector.Error as err:
+                if self.log_level:
+                    logging.info(err.msg)
+            try:
+                self.cursor.close()
+            except:
+                pass
+
+
+            
+            
         if self.log_level:
             logging.info('Accepting connection from %s:%s' % self.client_address)
 
@@ -52,7 +95,7 @@ class LoadBalancer(StreamRequestHandler):
         methods = self.get_available_methods(nmethods)
 
         self.auth = False
-        if self.username and self.password:
+        if self.auth_mode != "none":
             self.auth = True
 
         # accept only USERNAME/PASSWORD auth
@@ -65,6 +108,8 @@ class LoadBalancer(StreamRequestHandler):
         self.connection.sendall(struct.pack("!BB", self.socks_version, 2))
 
         if not self.verify_credentials():
+            if self.log_level:
+                logging.info('Invalid username/password for %s:%s' % self.client_address)
             return
 
         # request
@@ -163,6 +208,9 @@ class LoadBalancer(StreamRequestHandler):
         if self.load_balancing_mode == "leastconn":
             self.server.connection_manager[proxy] = self.server.connection_manager[proxy] - 1
 
+        if self.auth_mode == 'database' or self.backend_mode == 'database':
+            self.cnx.close()
+
     def get_available_methods(self, n):
         methods = []
         for i in range(n):
@@ -180,12 +228,14 @@ class LoadBalancer(StreamRequestHandler):
         password = self.connection.recv(password_len).decode('utf-8')
 
         if not self.auth or ( 
-                self.auth 
+                self.auth
+                and self.auth_mode == "config"
                 and not self.auth_scrypt 
                 and username == self.username 
                 and password == self.password
             ) or (
                 self.auth 
+                and self.auth_mode == "config"
                 and self.auth_scrypt 
                 and username == self.username 
                 and self.scrypt_hash(password) == self.password
@@ -194,11 +244,38 @@ class LoadBalancer(StreamRequestHandler):
             response = struct.pack("!BB", version, 0)
             self.connection.sendall(response)
             return True
+        
+        if self.auth and self.auth_mode == "database":
+            self.cursor = self.cnx.cursor()            
+            sql = "SELECT username,password FROM users WHERE username='%s'" % username
+            try:
+                self.cursor.execute(sql)
+                for (dbusername, dbpassword) in self.cursor:    
+                    if self.auth_scrypt:
+                        password = self.scrypt_hash(password)
+                    
+                    if password == dbpassword:                        
+                        response = struct.pack("!BB", version, 0)
+                        self.connection.sendall(response)
+                        self.cursor.close()                        
+                        return True                    
 
+            except mysql.connector.Error as err:
+                if self.log_level:
+                    logging.info('DATABASE ERROR: %s' % err.msg)               
+            except Exception as e:
+                if self.log_level:
+                    logging.info('Unknown exception %s' % repr(e))
+
+            try:   
+                self.cursor.close()            
+            except:
+                pass
+        
         # failure, status != 0
         response = struct.pack("!BB", version, 0xFF)
         self.connection.sendall(response)
-        self.server.close_request(self.request)
+        self.server.close_request(self.request)        
         return False
 
     def generate_failed_reply(self, address_type, error_number):
@@ -227,12 +304,36 @@ class LoadBalancer(StreamRequestHandler):
 
 def main(config):
 
+    auth_mode = "config"
+    backend_mode = "config"
     log_level = logging.INFO
     log_filename = "sproxy.log"
     load_balancing_mode = "random"
+    database_hostname = False
+    database_username = False
+    database_password = False
+    database_port = False
+    database_dbname = False
+    database_mode = False
     if "settings" in config:
+        if "DATABASE_HOSTNAME" in config["settings"]:
+            database_hostname = config["settings"]["DATABASE_HOSTNAME"]
+        if "DATABASE_USERNAME" in config["settings"]:
+            database_username = config["settings"]["DATABASE_USERNAME"]
+        if "DATABASE_PASSWORD" in config["settings"]:
+            database_password = config["settings"]["DATABASE_PASSWORD"]
+        if "DATABASE_PORT" in config["settings"]:
+            database_port = config["settings"]["DATABASE_PORT"]
+        if "DATABASE_DBNAME" in config["settings"]:
+            database_dbname = config["settings"]["DATABASE_DBNAME"]
+        if "DATABASE_MODE" in config["settings"]:
+            database_mode = config["settings"]["DATABASE_MODE"]
         if "LOAD_BALANCING_MODE" in config["settings"]:
             load_balancing_mode = config["settings"]["LOAD_BALANCING_MODE"]
+        if "AUTH_MODE" in config["settings"]:
+            auth_mode = config["settings"]["AUTH_MODE"]
+        if "BACKEND_MODE" in config["settings"]:
+            backend_mode = config["settings"]["BACKEND_MODE"]
         if "LOG_FILENAME" in config["settings"]:
             log_filename = config["settings"]["LOG_FILENAME"]
         if "LOG_LEVEL" in config["settings"]:
@@ -271,9 +372,27 @@ def main(config):
         #     socks_version = config["frontend"]["SOCKS_VERSION"]
 
     backends = []
-    if "backend" in config:
-        for key in config["backend"]:
-            backends.append(config["backend"][key])
+    if backend_mode == "config":
+        if "backend" in config:
+            for key in config["backend"]:
+                backends.append(config["backend"][key])
+
+    if backend_mode == "database":
+        cnx = mysql.connector.connect(user=database_username, password=database_password,
+                    host=database_hostname,
+                    port=database_port,
+                    database=database_dbname)
+        cursor = cnx.cursor()
+        sql = "SELECT id,proxy FROM backends"
+        try:
+            cursor = cnx.cursor()
+            cursor.execute(sql)
+            for (id, proxy) in cursor:
+                backends.append(proxy)
+            cursor.close()
+            cnx.close()
+        except:
+            pass
 
     args = {}
     args["load_balancing_mode"] = load_balancing_mode
@@ -284,6 +403,14 @@ def main(config):
     args["auth_password"] = auth_password
     args["auth_scrypt"] = auth_scrypt
     args["auth_scrypt_salt"] = auth_scrypt_salt
+    args["auth_mode"] = auth_mode
+    args["backend_mode"] = backend_mode
+    args["database_hostname"] = database_hostname
+    args["database_username"] = database_username
+    args["database_password"] = database_password
+    args["database_port"] = database_port
+    args["database_dbname"] = database_dbname
+    args["database_mode"] = database_mode
 
     with ThreadingTCPServer((listen_ip, int(listen_port)), LoadBalancer, args) as server:
         try:
