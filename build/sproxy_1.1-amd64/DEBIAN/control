@@ -1,0 +1,5 @@
+Package: sproxy
+Version: 1.1
+Maintainer: Maxime Labelle <maxime.labelle@owasp.org>
+Architecture: all
+Description: sproxy is a high-performance socks4/socks5 proxy load-balancer
