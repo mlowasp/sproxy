@@ -18,7 +18,10 @@ class ThreadingTCPServer(ThreadingMixIn, TCPServer):
 
     def __init__(self, server_address, RequestHandlerClass, args = {}):
         TCPServer.__init__(self, server_address, RequestHandlerClass)
-        self.args = args        
+        self.args = args
+        self.connection_manager = {}
+        for backend in args['backends']:
+            self.connection_manager[backend] = 0
 
 class LoadBalancer(StreamRequestHandler):
 
@@ -83,33 +86,42 @@ class LoadBalancer(StreamRequestHandler):
             if cmd == 1:  # CONNECT
                 remote = socks.socksocket()
                 try:                    
-                    if self.load_balancing_mode == "random" or self.load_balancing_mode == "leastconn":
+                    proxy = False
+                    if self.load_balancing_mode == "random":
                         proxy = random.choice(self.backends)
-                        if proxy.find("socks5://") >= 0:
-                            proxy = proxy.split("socks5://")[1]
-                            if proxy.find("@") >= 0:
-                                proxy_hostname = proxy.split("@")[1].split(":")[0]
-                                proxy_port = int(proxy.split("@")[1].split(":")[1])
-                                proxy_username = proxy.split("@")[0].split(":")[0]
-                                proxy_password = proxy.split("@")[0].split(":")[1]
-                                remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port, True, proxy_username, proxy_password)
-                            else:
-                                proxy_hostname = proxy.split(":")[0]
-                                proxy_port = int(proxy.split(":")[1])
-                                remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port)
-                        
-                        if proxy.find("socks4://") >= 0:
-                            proxy = proxy.split("socks4://")[1]
-                            if proxy.find("@") >= 0:
-                                proxy_hostname = proxy.split("@")[1].split(":")[0]
-                                proxy_port = int(proxy.split("@")[1].split(":")[1])
-                                proxy_username = proxy.split("@")[0].split(":")[0]
-                                proxy_password = proxy.split("@")[0].split(":")[1]
-                                remote.set_proxy(socks.SOCKS4, proxy_hostname, proxy_port, True, proxy_username, proxy_password)
-                            else:
-                                proxy_hostname = proxy.split(":")[0]
-                                proxy_port = int(proxy.split(":")[1])
-                                remote.set_proxy(socks.SOCKS4, proxy_hostname, proxy_port)
+                    if self.load_balancing_mode == "leastconn":
+                        min_conn = min(self.server.connection_manager.values())
+                        possible_proxy = []
+                        for key, value in self.server.connection_manager.items():
+                            if value <= min_conn:
+                                possible_proxy.append(key)
+                        proxy = random.choice(possible_proxy)                        
+
+                    if proxy.find("socks5://") >= 0:
+                        proxy_info = proxy.split("socks5://")[1]
+                        if proxy_info.find("@") >= 0:
+                            proxy_hostname = proxy_info.split("@")[1].split(":")[0]
+                            proxy_port = int(proxy_info.split("@")[1].split(":")[1])
+                            proxy_username = proxy_info.split("@")[0].split(":")[0]
+                            proxy_password = proxy_info.split("@")[0].split(":")[1]
+                            remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port, True, proxy_username, proxy_password)
+                        else:
+                            proxy_hostname = proxy_info.split(":")[0]
+                            proxy_port = int(proxy_info.split(":")[1])
+                            remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port)
+                    
+                    if proxy.find("socks4://") >= 0:
+                        proxy_info = proxy.split("socks4://")[1]
+                        if proxy_info.find("@") >= 0:
+                            proxy_hostname = proxy_info.split("@")[1].split(":")[0]
+                            proxy_port = int(proxy_info.split("@")[1].split(":")[1])
+                            proxy_username = proxy_info.split("@")[0].split(":")[0]
+                            proxy_password = proxy_info.split("@")[0].split(":")[1]
+                            remote.set_proxy(socks.SOCKS4, proxy_hostname, proxy_port, True, proxy_username, proxy_password)
+                        else:
+                            proxy_hostname = proxy_info.split(":")[0]
+                            proxy_port = int(proxy_info.split(":")[1])
+                            remote.set_proxy(socks.SOCKS4, proxy_hostname, proxy_port)
                                 
                 except:
                     if self.log_level:
@@ -117,11 +129,14 @@ class LoadBalancer(StreamRequestHandler):
                         self.server.close_request(self.request)
                         return
 
+                if self.load_balancing_mode == "leastconn":
+                    self.server.connection_manager[proxy] = self.server.connection_manager[proxy] + 1
+
                 # remote = socket.socket(inet_type, socket.SOCK_STREAM)
                 remote.connect((address, port))
                 bind_address = remote.getsockname()
                 if self.log_level:
-                    logging.info('Connected to %s %s' % (address, port))
+                    logging.info('Connected to %s %s via [%s]' % (address, port, proxy))
             else:
                 self.server.close_request(self.request)
 
@@ -142,6 +157,9 @@ class LoadBalancer(StreamRequestHandler):
             self.exchange_loop(self.connection, remote)
 
         self.server.close_request(self.request)
+
+        if self.load_balancing_mode == "leastconn":
+            self.server.connection_manager[proxy] = self.server.connection_manager[proxy] - 1
 
     def get_available_methods(self, n):
         methods = []
