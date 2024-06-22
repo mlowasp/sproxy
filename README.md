@@ -82,13 +82,17 @@ If you want to use scrypt hashes for your user's password; use AUTH_SCRYPT=true 
 ```
 # optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
-# the password is: x
-AUTH_PASSWORD=804158fa6e84126ce1dc96d419dc6ad2274aeb8c866e248fce85cbe89096f9a4b5cb4948a8a0e22e7c5cb42c800c278c48e85c2c2ff19338c90bf24fe5512759
+
+# the password is: password
+AUTH_PASSWORD=53e29a037248e6058cb93e58dbf15d80c6139ac452fa0993c864323a9522050833dac73e3ab2ab3e107b72a216ba9ff7dcb93027808175fe03ea728872e0b27f
+
 AUTH_SCRYPT=true
-AUTH_SCRYPT_SALT=<random_salt>
+
+# change this (do not use this salt in production)
+AUTH_SCRYPT_SALT=804158fa6e84126ce1dc96d419dc6ad2274aeb8c866e248fce85cbe89096f9a4b5cb4948a8a0e22e7c5cb42c800c278c48e85c2c2ff19338c90bf24fe5512759
 ```
 
-You can [use this tool to generate sha512 hash](https://emn178.github.io/online-tools/sha512.html)
+You can [use this tool to generate the scrypt hash](https://www.browserling.com/tools/scrypt)
 
 ## Database based configuration
 
