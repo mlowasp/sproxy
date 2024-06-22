@@ -1,2 +1,4 @@
 termcolor
+mysql-connector-python
 PySocks
+scrypt

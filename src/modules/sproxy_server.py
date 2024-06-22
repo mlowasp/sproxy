@@ -6,6 +6,7 @@ import socks
 import sys
 import random
 import hashlib
+import scrypt
 
 from socketserver import ThreadingMixIn, TCPServer, StreamRequestHandler
 from . import sproxy_console as Console
@@ -32,7 +33,8 @@ class LoadBalancer(StreamRequestHandler):
         self.backends = self.server.args["backends"]
         self.username = self.server.args["auth_username"]
         self.password = self.server.args["auth_password"]
-        self.auth_sha512 = self.server.args["auth_sha512"]
+        self.auth_scrypt = self.server.args["auth_scrypt"]
+        self.auth_scrypt_salt = self.server.args["auth_scrypt_salt"]
         
         if self.log_level:
             logging.info('Accepting connection from %s:%s' % self.client_address)
@@ -179,14 +181,14 @@ class LoadBalancer(StreamRequestHandler):
 
         if not self.auth or ( 
                 self.auth 
-                and not self.auth_sha512 
+                and not self.auth_scrypt 
                 and username == self.username 
                 and password == self.password
             ) or (
                 self.auth 
-                and self.auth_sha512 
+                and self.auth_scrypt 
                 and username == self.username 
-                and self.sha512(password) == self.password
+                and self.scrypt_hash(password) == self.password
             ):
             # success, status = 0
             response = struct.pack("!BB", version, 0)
@@ -202,8 +204,8 @@ class LoadBalancer(StreamRequestHandler):
     def generate_failed_reply(self, address_type, error_number):
         return struct.pack("!BBBBIH", self.socks_version, error_number, 0, address_type, 0, 0)
     
-    def sha512(self, password):
-        password_hash=hashlib.sha512(password.encode('utf-8')).hexdigest()
+    def scrypt_hash(self, password):        
+        password_hash = scrypt.hash(password.encode('utf-8'), self.auth_scrypt_salt).hex()
         return password_hash
 
     def exchange_loop(self, client, remote):
@@ -249,11 +251,14 @@ def main(config):
     socks_version = 5
     auth_username = False
     auth_password = False
-    auth_sha512 = False
+    auth_scrypt = False
+    auth_scrypt_salt = False
     if "frontend" in config:      
-        if "AUTH_SHA512" in config["frontend"]:
-            if config["frontend"]["AUTH_SHA512"] == "true":
-                auth_sha512 = True
+        if "AUTH_SCRYPT_SALT" in config["frontend"]:
+            auth_scrypt_salt = config["frontend"]["AUTH_SCRYPT_SALT"]
+        if "AUTH_SCRYPT" in config["frontend"]:
+            if config["frontend"]["AUTH_SCRYPT"] == "true":
+                auth_scrypt = True
         if "AUTH_USERNAME" in config["frontend"]:
             auth_username =  config["frontend"]["AUTH_USERNAME"]
         if "AUTH_PASSWORD" in config["frontend"]:
@@ -277,7 +282,8 @@ def main(config):
     args["backends"] = backends
     args["auth_username"] = auth_username
     args["auth_password"] = auth_password
-    args["auth_sha512"] = auth_sha512
+    args["auth_scrypt"] = auth_scrypt
+    args["auth_scrypt_salt"] = auth_scrypt_salt
 
     with ThreadingTCPServer((listen_ip, int(listen_port)), LoadBalancer, args) as server:
         try:

@@ -55,8 +55,13 @@ LISTEN_PORT=1080
 # optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
 AUTH_PASSWORD=password
+
 # possible values: true|false
-AUTH_SHA512=false
+AUTH_SCRYPT=false
+
+# change this if using scrypt
+AUTH_SCRYPT_SALT=
+
 # possible values: config|database
 AUTH_MODE=config
 
@@ -72,29 +77,22 @@ BACKEND0=socks5://username:password@ipv4:port1
 BACKEND1=socks5://username:password@ipv4:port2
 ```
 
-If you want to use sha512 hashes for your user's password; use AUTH_SHA512=true and use the sha512 hex of the password in the config file, ie:
+If you want to use scrypt hashes for your user's password; use AUTH_SCRYPT=true and use the scrypt hash hex of the password in the config file, ie:
 
 ```
 # optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
-# the password is: password
-AUTH_PASSWORD=b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86
-AUTH_SHA512=true
+# the password is: x
+AUTH_PASSWORD=804158fa6e84126ce1dc96d419dc6ad2274aeb8c866e248fce85cbe89096f9a4b5cb4948a8a0e22e7c5cb42c800c278c48e85c2c2ff19338c90bf24fe5512759
+AUTH_SCRYPT=true
+AUTH_SCRYPT_SALT=<random_salt>
 ```
 
 You can [use this tool to generate sha512 hash](https://emn178.github.io/online-tools/sha512.html)
 
 ## Database based configuration
 
-You can use a mysql database to configure SPROXY authentication users and the backends.
-
-In order to use a mysql database, set the following parameter in the 'frontend' section of the configuration file:
-
-```
-AUTH_MODE=database
-```
-
-Then enter the database connection parameters in the 'settings' section of the configuration file:
+You can use a mysql database to configure SPROXY authentication users and the backends. Enter the database connection parameters in the 'settings' section of the configuration file:
 
 ```
 DATABASE_HOSTNAME=127.0.0.1
@@ -104,7 +102,43 @@ DATABASE_USERNAME=sproxy
 DATABASE_PASSWORd=password
 ```
 
-Now create the following tables in your "sproxy" database;
+In order to use a mysql database to authenticate your users, set the following parameter in the 'frontend' section of the configuration file:
+
+```
+[frontend]
+# possible values: config|database
+AUTH_MODE=database
+```
+
+Now create the required tables in your "sproxy" database;
+
+```
+sproxy --database-create-tables
+```
+
+If you want to use the database for your backends as well, make sure you have the "BACKEND_MODE=database" parameter setup in the "backend" section of your configuration file.
+
+```
+[backend]
+# possible values: config|database
+BACKEND_MODE=database
+```
+
+## Creating the database tables
+
+```
+sproxy --database-create-tables
+```
+
+Here is the SQL for the "backends" table:
+
+```
+CREATE TABLE `backends` (
+  `id` varchar(64) NOT NULL,
+  `proxy` text DEFAULT NULL,  
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
 
 Here is the SQL for the "users" table:
 
@@ -112,24 +146,24 @@ Here is the SQL for the "users" table:
 CREATE TABLE `users` (
   `id` varchar(64) NOT NULL,
   `username` text DEFAULT NULL,
-  `passwordhash` text DEFAULT NULL,
-  `status` varchar(45) DEFAULT NULL,
+  `password` text DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
-Here is the SQL for the "backend" table:
+### Listing users
 
 ```
-CREATE TABLE `backend` (
-  `id` varchar(64) NOT NULL,
-  `proxy` text DEFAULT NULL,  
-  `status` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+sproxy --database-list-users
 ```
 
-### Example using TOR
+### Listing backends
+
+```
+sproxy --database-list-backends
+```
+
+## Simple example using TOR
 
 Let's say you have the following TOR circuits setup in your /etc/tor/torrc configuration file:
 
