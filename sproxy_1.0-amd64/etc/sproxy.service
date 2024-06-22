@@ -1,0 +1,10 @@
+[Unit]
+Description=sproxy load-balancer
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/sproxy
+WorkingDirectory=/usr/local/bin
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

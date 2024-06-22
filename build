@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-# taken from https://askubuntu.com/questions/90764/how-do-i-create-a-deb-package-for-a-single-python-script
-
-cd src
-pyinstaller -F sproxy.py
-cd ..
-
-pandoc src/sproxy.1.md -s -t man > sproxy.1
-debuild --no-tgz-check -uc -us
