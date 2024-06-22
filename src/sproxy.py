@@ -24,8 +24,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("sproxy")
     parser.add_argument("--config", help="<file> to be used as the configuration file.", required=False, default="/etc/sproxy/sproxy.conf")
     parser.add_argument("--database-create-tables", help="Create the required database tables.", required=False, action='store_true')
-    parser.add_argument("--database-list-backends", help="List of the database backends.", required=False)
-    parser.add_argument("--database-list-users", help="List of the database users.", required=False)
+    parser.add_argument("--database-list-backends", help="List of the database backends.", required=False, action='store_true')
+    parser.add_argument("--database-list-users", help="List of the database users.", required=False, action='store_true')
     parser.add_argument("--database-add-backend", help="Adds <backend> to the database.", required=False)
     parser.add_argument("--database-remove-backend", help="Removes <backend> from the database.", required=False)
     parser.add_argument("--database-add-user", help="Adds <username:password> to the database.", required=False)
@@ -119,14 +119,16 @@ if __name__ == '__main__':
                 `id` varchar(64) NOT NULL,
                 `username` text DEFAULT NULL,
                 `password` text DEFAULT NULL,
-                PRIMARY KEY (`id`)
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `username_UNIQUE` (`username`) USING HASH
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             '''
             TABLES['backends'] = '''
                 CREATE TABLE `backends` (
-                `id` varchar(64) NOT NULL,
-                `proxy` text DEFAULT NULL,
-                PRIMARY KEY (`id`)
+                    `id` varchar(64) NOT NULL,
+                    `proxy` text DEFAULT NULL,  
+                    PRIMARY KEY (`id`),
+                    UNIQUE KEY `proxy_UNIQUE` (`proxy`) USING HASH
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             '''
             for table_name in TABLES:
@@ -142,6 +144,38 @@ if __name__ == '__main__':
                 else:
                     Console.pmsg("OK")
 
+            cursor.close()
+            cnx.close()
+            sys.exit(0)
+
+        if args.database_list_users:
+            Console.pmsg("Listing users in the database...")            
+            sql = "SELECT username FROM users"
+            try:
+                cursor.execute(sql)
+                for (username) in cursor:
+                    Console.pmsg("Username: %s" % username)
+
+            except mysql.connector.Error as err:
+                Console.perr(err.msg)
+            else:
+                Console.pmsg("OK")
+            cursor.close()
+            cnx.close()
+            sys.exit(0)
+
+        if args.database_list_backends:
+            Console.pmsg("Listing backends in the database...")            
+            sql = "SELECT proxy FROM backends"
+            try:
+                cursor.execute(sql)
+                for (proxy) in cursor:
+                    Console.pmsg("Backend: %s" % proxy)
+
+            except mysql.connector.Error as err:
+                Console.perr(err.msg)
+            else:
+                Console.pmsg("OK")
             cursor.close()
             cnx.close()
             sys.exit(0)
