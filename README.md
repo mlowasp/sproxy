@@ -40,6 +40,13 @@ LOG_FILENAME=/var/log/sproxy.log
 # available load balancing modes are: leastconn, random
 LOAD_BALANCING_MODE=leastconn
 
+# database support for mysql only
+DATABASE_HOSTNAME=127.0.0.1
+DATABASE_PORT=3306
+DATABASE_DBNAME=sproxy
+DATABASE_USERNAME=sproxy
+DATABASE_PASSWORd=password
+
 [frontend]
 
 LISTEN_IP=127.0.0.1
@@ -50,6 +57,8 @@ AUTH_USERNAME=username
 AUTH_PASSWORD=password
 # possible values: true|false
 AUTH_SHA512=false
+# possible values: config|database
+AUTH_MODE=config
 
 [backend]
 
@@ -74,6 +83,51 @@ AUTH_SHA512=true
 ```
 
 You can [use this tool to generate sha512 hash](https://emn178.github.io/online-tools/sha512.html)
+
+## Database based configuration
+
+You can use a mysql database to configure SPROXY authentication users and the backends.
+
+In order to use a mysql database, set the following parameter in the 'frontend' section of the configuration file:
+
+```
+AUTH_MODE=database
+```
+
+Then enter the database connection parameters in the 'settings' section of the configuration file:
+
+```
+DATABASE_HOSTNAME=127.0.0.1
+DATABASE_PORT=3306
+DATABASE_DBNAME=sproxy
+DATABASE_USERNAME=sproxy
+DATABASE_PASSWORd=password
+```
+
+Now create the following tables in your "sproxy" database;
+
+Here is the SQL for the "users" table:
+
+```
+CREATE TABLE `users` (
+  `id` varchar(64) NOT NULL,
+  `username` text DEFAULT NULL,
+  `passwordhash` text DEFAULT NULL,
+  `status` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+Here is the SQL for the "backend" table:
+
+```
+CREATE TABLE `backend` (
+  `id` varchar(64) NOT NULL,
+  `proxy` text DEFAULT NULL,  
+  `status` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
 ### Example using TOR
 
@@ -132,6 +186,8 @@ AUTH_USERNAME=username
 AUTH_PASSWORD=password
 # possible values: true|false
 AUTH_SHA512=false
+# possible values: config|database
+AUTH_MODE=config
 
 [backend]
 
@@ -172,8 +228,6 @@ wpscan -v --proxy socks5://127.0.0.1:1080 --proxy-auth username:password --url h
 
 - bandwidth monitoring
 - bandwidth quotas
-- multiple user support
-- mysql database based configuration
 - web based frontend
 
 ## License
