@@ -2,8 +2,7 @@
 Description=sproxy load-balancer
 
 [Service]
-ExecStart=/usr/bin/python3 /usr/local/bin/sproxy
-WorkingDirectory=/usr/local/bin
+ExecStart=/usr/bin/sproxy
 Restart=always
 
 [Install]

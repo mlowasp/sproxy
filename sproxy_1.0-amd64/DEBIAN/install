@@ -1,4 +1,0 @@
-etc/sproxy/sproxy.conf etc/sproxy/
-etc/sproxy.service etc/systemd/system/
-src/dist/sproxy usr/local/bin/
-sproxy.1 usr/share/man/man1/

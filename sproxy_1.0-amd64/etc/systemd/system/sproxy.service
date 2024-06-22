@@ -1,0 +1,9 @@
+[Unit]
+Description=sproxy load-balancer
+
+[Service]
+ExecStart=/usr/bin/sproxy
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

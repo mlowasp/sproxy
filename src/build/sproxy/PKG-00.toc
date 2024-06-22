@@ -86,7 +86,7 @@
   ('base_library.zip',
    '/home/mlabelle/Documents/work/tcpnix.com/sproxy/src/build/sproxy/base_library.zip',
    'DATA')],
- 'libpython3.11.so',
+ 'libpython3.11.so.1.0',
  False,
  False,
  False,
