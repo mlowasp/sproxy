@@ -138,9 +138,10 @@ Here is the SQL for the "backends" table:
 
 ```
 CREATE TABLE `backends` (
-  `id` varchar(64) NOT NULL,
-  `proxy` text DEFAULT NULL,  
-  PRIMARY KEY (`id`)
+    `id` varchar(64) NOT NULL,
+    `proxy` text DEFAULT NULL,  
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `proxy_UNIQUE` (`proxy`) USING HASH
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
@@ -148,10 +149,11 @@ Here is the SQL for the "users" table:
 
 ```
 CREATE TABLE `users` (
-  `id` varchar(64) NOT NULL,
-  `username` text DEFAULT NULL,
-  `password` text DEFAULT NULL,
-  PRIMARY KEY (`id`)
+    `id` varchar(64) NOT NULL,
+    `username` text DEFAULT NULL,
+    `password` text DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `username_UNIQUE` (`username`) USING HASH
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
@@ -161,10 +163,38 @@ CREATE TABLE `users` (
 sproxy --database-list-users
 ```
 
+### Adding a new user 
+
+Usernames must be unique;
+
+```
+sproxy --database-add-user username:password
+```
+
+### Removing a user
+
+```
+sproxy --database-remove-user username
+```
+
 ### Listing backends
 
 ```
 sproxy --database-list-backends
+```
+
+### Adding a new backend
+
+Backends must be unique;
+
+```
+sproxy --database-add-backend socks5://127.0.0.1:9050
+```
+
+### Removing a backend
+
+```
+sproxy --database-remove-backend socks5://127.0.0.1:9050
 ```
 
 ## Simple example using TOR
