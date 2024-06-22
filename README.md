@@ -26,6 +26,33 @@ You can test SPROXY using curl:
 curl --socks5 127.0.0.1:1080 -U username:password http://ip-api.com
 ```
 
+You can see the possible arguments using --help
+
+```
+usage: sproxy [-h] [--config CONFIG] [--database-create-tables] [--database-list-backends] [--database-list-users] [--database-add-backend DATABASE_ADD_BACKEND]
+              [--database-remove-backend DATABASE_REMOVE_BACKEND] [--database-add-user DATABASE_ADD_USER] [--database-remove-user DATABASE_REMOVE_USER]
+
+options:
+  -h, --help            show this help message and exit
+  --config CONFIG       <file> to be used as the configuration file.
+  --database-create-tables
+                        Create the required database tables.
+  --database-list-backends
+                        List of the database backends.
+  --database-list-users
+                        List of the database users.
+  --database-add-backend DATABASE_ADD_BACKEND
+                        Adds <backend> to the database.
+  --database-remove-backend DATABASE_REMOVE_BACKEND
+                        Removes <backend> from the database.
+  --database-add-user DATABASE_ADD_USER
+                        Adds <username:password> to the database.
+  --database-remove-user DATABASE_REMOVE_USER
+                        Removes <username> from the database.
+
+```
+
+
 ## Configuration
 
 The configuration file is pretty straightforward (/etc/sproxy/sproxy.conf):
