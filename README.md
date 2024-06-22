@@ -328,7 +328,7 @@ wpscan -v --proxy socks5://127.0.0.1:1080 --proxy-auth username:password --url h
 ## TODO
 
 - bandwidth monitoring
-- bandwidth quotas
+- rate limiting/usage quotas
 - web based frontend
 
 ## License
