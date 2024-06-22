@@ -5,15 +5,15 @@ import configparser
 import hashlib
 import mysql.connector
 import uuid
-import scrypt
 import os
 
 from mysql.connector import errorcode
 from modules import sproxy_server as Server
 from modules import sproxy_console as Console
 
-def hash_password(password, maxtime=0.5, datalength=64):
-    return scrypt.encrypt(os.urandom(datalength), password, maxtime=maxtime)
+def hash_password(password):
+    hash=hashlib.sha512(text.encode('utf-8')).hexdigest()
+    return hash
 
 def sha256(text):
     hash=hashlib.sha256(text.encode('utf-8')).hexdigest()
@@ -146,8 +146,8 @@ if __name__ == '__main__':
             uid = sha256(str(uuid.uuid4()))
             username = args.database_add_user.split(":")[0]
             password = str(args.database_add_user.split(":")[1])
-            if config['frontend']['AUTH_SCRYPT'] == "true":
-                password = scrypt.hash(password, str(config['frontend']['AUTH_SCRYPT_SALT'])).hex()
+            if config['frontend']['AUTH_SHA512'] == "true":
+                password = hash_password(password)
             sql = "INSERT INTO users(id, username, password) VALUES('%s','%s','%s')" % (uid, username, password)
             try:
                 Console.pmsg("Adding user {}: ".format(username))
@@ -193,7 +193,7 @@ if __name__ == '__main__':
             cnx.close()
             sys.exit(0)
 
-    Console.pmsg("Starting sproxy...")
+    Console.pmsg("Starting sproxy v1.1")
     Server.main(config)
 
             

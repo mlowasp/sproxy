@@ -53,6 +53,9 @@ BACKEND_MODE=config
 # possible values: config|database
 AUTH_MODE=config
 
+# possible values: true|false
+AUTH_SHA512=false
+
 [frontend]
 
 LISTEN_IP=127.0.0.1
@@ -61,12 +64,6 @@ LISTEN_PORT=1080
 # optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
 AUTH_PASSWORD=password
-
-# possible values: true|false
-AUTH_SCRYPT=false
-
-# change this if using scrypt
-AUTH_SCRYPT_SALT=
 
 [backend]
 
@@ -80,22 +77,23 @@ BACKEND0=socks5://username:password@ipv4:port1
 BACKEND1=socks5://username:password@ipv4:port2
 ```
 
-If you want to use scrypt hashes for your user's password; use AUTH_SCRYPT=true and use the scrypt hash hex of the password in the config file, ie:
+If you want to use sha512 hashes for your user's password; use AUTH_SHA512=true and use the sha512 hash hex of the password in the config file, ie:
 
 ```
+[settings]
+
+AUTH_SHA512=true
+
+[frontend]
+
 # optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
 
 # the password is: password
-AUTH_PASSWORD=53e29a037248e6058cb93e58dbf15d80c6139ac452fa0993c864323a9522050833dac73e3ab2ab3e107b72a216ba9ff7dcb93027808175fe03ea728872e0b27f
-
-AUTH_SCRYPT=true
-
-# change this (do not use this salt in production)
-AUTH_SCRYPT_SALT=804158fa6e84126ce1dc96d419dc6ad2274aeb8c866e248fce85cbe89096f9a4b5cb4948a8a0e22e7c5cb42c800c278c48e85c2c2ff19338c90bf24fe5512759
+AUTH_PASSWORD=b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86
 ```
 
-You can [use this tool to generate the scrypt hash](https://www.browserling.com/tools/scrypt)
+You can [use this tool to generate the sha512 hash](https://emn178.github.io/online-tools/sha512.html)
 
 ## Database based configuration
 
@@ -109,10 +107,10 @@ DATABASE_USERNAME=sproxy
 DATABASE_PASSWORd=password
 ```
 
-In order to use a mysql database to authenticate your users, set the following parameter in the 'frontend' section of the configuration file:
+In order to use a mysql database to authenticate your users, set the following parameter in the 'settings' section of the configuration file:
 
 ```
-[frontend]
+[settings]
 # possible values: config|database
 AUTH_MODE=database
 ```
@@ -123,10 +121,10 @@ Now create the required tables in your "sproxy" database;
 sproxy --database-create-tables
 ```
 
-If you want to use the database for your backends as well, make sure you have the "BACKEND_MODE=database" parameter setup in the "backend" section of your configuration file.
+If you want to use the database for your backends as well, make sure you have the "BACKEND_MODE=database" parameter setup in the "settings" section of your configuration file.
 
 ```
-[backend]
+[settings]
 # possible values: config|database
 BACKEND_MODE=database
 ```
@@ -253,6 +251,9 @@ BACKEND_MODE=config
 # possible values: config|database
 AUTH_MODE=config
 
+# possible values: true|false
+AUTH_SHA512=false
+
 [frontend]
 
 LISTEN_IP=127.0.0.1
@@ -261,12 +262,6 @@ LISTEN_PORT=1080
 # optional (remove or leave empty for no authentication)
 AUTH_USERNAME=username
 AUTH_PASSWORD=password
-
-# possible values: true|false
-AUTH_SCRYPT=false
-
-# change this if using scrypt
-AUTH_SCRYPT_SALT=
 
 [backend]
 

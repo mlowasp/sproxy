@@ -6,7 +6,6 @@ import socks
 import sys
 import random
 import hashlib
-import scrypt
 import mysql.connector
 
 from socketserver import ThreadingMixIn, TCPServer, StreamRequestHandler
@@ -34,8 +33,7 @@ class LoadBalancer(StreamRequestHandler):
         self.backends = self.server.args["backends"]
         self.username = self.server.args["auth_username"]
         self.password = self.server.args["auth_password"]
-        self.auth_scrypt = self.server.args["auth_scrypt"]
-        self.auth_scrypt_salt = self.server.args["auth_scrypt_salt"]
+        self.auth_sha512 = self.server.args["auth_sha512"]
         self.auth_mode = self.server.args["auth_mode"]
         self.backend_mode = self.server.args["backend_mode"]
         self.database_mode = self.server.args["database_mode"]
@@ -44,7 +42,7 @@ class LoadBalancer(StreamRequestHandler):
         self.database_username = self.server.args["database_username"]
         self.database_password = self.server.args["database_password"]
         self.database_dbname = self.server.args["database_dbname"]
-        
+
         if self.auth_mode == 'database' or self.backend_mode == 'database':
             self.cnx = mysql.connector.connect(user=self.database_username, password=self.database_password,
                     host=self.database_hostname,
@@ -59,7 +57,7 @@ class LoadBalancer(StreamRequestHandler):
                 backends = []
                 for (id, proxy) in self.cursor:
                     backends.append(proxy)
-                
+
                 a = set(backends)
                 b = set(self.backends)
                 if a != b:
@@ -76,9 +74,6 @@ class LoadBalancer(StreamRequestHandler):
             except:
                 pass
 
-
-            
-            
         if self.log_level:
             logging.info('Accepting connection from %s:%s' % self.client_address)
 
@@ -132,7 +127,7 @@ class LoadBalancer(StreamRequestHandler):
         try:
             if cmd == 1:  # CONNECT
                 remote = socks.socksocket()
-                try:                    
+                try:
                     proxy = False
                     if self.load_balancing_mode == "random":
                         proxy = random.choice(self.backends)
@@ -142,7 +137,7 @@ class LoadBalancer(StreamRequestHandler):
                         for key, value in self.server.connection_manager.items():
                             if value <= min_conn:
                                 possible_proxy.append(key)
-                        proxy = random.choice(possible_proxy)                        
+                        proxy = random.choice(possible_proxy)
 
                     if proxy.find("socks5://") >= 0:
                         proxy_info = proxy.split("socks5://")[1]
@@ -156,7 +151,7 @@ class LoadBalancer(StreamRequestHandler):
                             proxy_hostname = proxy_info.split(":")[0]
                             proxy_port = int(proxy_info.split(":")[1])
                             remote.set_proxy(socks.SOCKS5, proxy_hostname, proxy_port)
-                    
+
                     if proxy.find("socks4://") >= 0:
                         proxy_info = proxy.split("socks4://")[1]
                         if proxy_info.find("@") >= 0:
@@ -169,7 +164,7 @@ class LoadBalancer(StreamRequestHandler):
                             proxy_hostname = proxy_info.split(":")[0]
                             proxy_port = int(proxy_info.split(":")[1])
                             remote.set_proxy(socks.SOCKS4, proxy_hostname, proxy_port)
-                                
+
                 except:
                     if self.log_level:
                         logging.info('Failed to select backend. Dropping connection...')
@@ -179,7 +174,6 @@ class LoadBalancer(StreamRequestHandler):
                 if self.load_balancing_mode == "leastconn":
                     self.server.connection_manager[proxy] = self.server.connection_manager[proxy] + 1
 
-                # remote = socket.socket(inet_type, socket.SOCK_STREAM)
                 remote.connect((address, port))
                 bind_address = remote.getsockname()
                 if self.log_level:
@@ -227,62 +221,62 @@ class LoadBalancer(StreamRequestHandler):
         password_len = ord(self.connection.recv(1))
         password = self.connection.recv(password_len).decode('utf-8')
 
-        if not self.auth or ( 
+        if not self.auth or (
                 self.auth
                 and self.auth_mode == "config"
-                and not self.auth_scrypt 
-                and username == self.username 
+                and not self.auth_sha512
+                and username == self.username
                 and password == self.password
             ) or (
-                self.auth 
+                self.auth
                 and self.auth_mode == "config"
-                and self.auth_scrypt 
-                and username == self.username 
-                and self.scrypt_hash(password) == self.password
+                and self.auth_sha512
+                and username == self.username
+                and self.password_hash(password) == self.password
             ):
             # success, status = 0
             response = struct.pack("!BB", version, 0)
             self.connection.sendall(response)
             return True
-        
+
         if self.auth and self.auth_mode == "database":
-            self.cursor = self.cnx.cursor()            
+            self.cursor = self.cnx.cursor()
             sql = "SELECT username,password FROM users WHERE username='%s'" % username
             try:
                 self.cursor.execute(sql)
-                for (dbusername, dbpassword) in self.cursor:    
-                    if self.auth_scrypt:
-                        password = self.scrypt_hash(password)
-                    
-                    if password == dbpassword:                        
+                for (dbusername, dbpassword) in self.cursor:
+                    if self.auth_sha512:
+                        password = self.password_hash(password)
+
+                    if password == dbpassword:
                         response = struct.pack("!BB", version, 0)
                         self.connection.sendall(response)
-                        self.cursor.close()                        
-                        return True                    
+                        self.cursor.close()
+                        return True
 
             except mysql.connector.Error as err:
                 if self.log_level:
-                    logging.info('DATABASE ERROR: %s' % err.msg)               
+                    logging.info('DATABASE ERROR: %s' % err.msg)
             except Exception as e:
                 if self.log_level:
                     logging.info('Unknown exception %s' % repr(e))
 
-            try:   
-                self.cursor.close()            
+            try:
+                self.cursor.close()
             except:
                 pass
-        
+
         # failure, status != 0
         response = struct.pack("!BB", version, 0xFF)
         self.connection.sendall(response)
-        self.server.close_request(self.request)        
+        self.server.close_request(self.request)
         return False
 
     def generate_failed_reply(self, address_type, error_number):
         return struct.pack("!BBBBIH", self.socks_version, error_number, 0, address_type, 0, 0)
-    
-    def scrypt_hash(self, password):        
-        password_hash = scrypt.hash(password.encode('utf-8'), self.auth_scrypt_salt).hex()
+
+    def password_hash(self, password):
+        password_hash = hashlib.sha512(password.encode('utf-8')).hexdigest()
         return password_hash
 
     def exchange_loop(self, client, remote):
@@ -305,6 +299,7 @@ class LoadBalancer(StreamRequestHandler):
 def main(config):
 
     auth_mode = "config"
+    auth_sha512 = False
     backend_mode = "config"
     log_level = logging.INFO
     log_filename = "sproxy.log"
@@ -316,6 +311,9 @@ def main(config):
     database_dbname = False
     database_mode = False
     if "settings" in config:
+        if "AUTH_SHA512" in config["settings"]:
+            if config["settings"]["AUTH_SHA512"] == "true":
+                auth_sha512 = True
         if "DATABASE_HOSTNAME" in config["settings"]:
             database_hostname = config["settings"]["DATABASE_HOSTNAME"]
         if "DATABASE_USERNAME" in config["settings"]:
@@ -338,28 +336,21 @@ def main(config):
             log_filename = config["settings"]["LOG_FILENAME"]
         if "LOG_LEVEL" in config["settings"]:
             if config["settings"]["LOG_LEVEL"] == "info":
-                log_level = logging.INFO 
+                log_level = logging.INFO
             if config["settings"]["LOG_LEVEL"] == "none":
                 log_level = False
             if config["settings"]["LOG_LEVEL"] == "debug":
                 log_level = logging.DEBUG
-    
+
     if log_level:
         logging.basicConfig(filename=log_filename, level=log_level)
-    
+
     listen_ip = "127.0.0.1"
     listen_port = "1080"
     socks_version = 5
     auth_username = False
     auth_password = False
-    auth_scrypt = False
-    auth_scrypt_salt = False
-    if "frontend" in config:      
-        if "AUTH_SCRYPT_SALT" in config["frontend"]:
-            auth_scrypt_salt = config["frontend"]["AUTH_SCRYPT_SALT"]
-        if "AUTH_SCRYPT" in config["frontend"]:
-            if config["frontend"]["AUTH_SCRYPT"] == "true":
-                auth_scrypt = True
+    if "frontend" in config:
         if "AUTH_USERNAME" in config["frontend"]:
             auth_username =  config["frontend"]["AUTH_USERNAME"]
         if "AUTH_PASSWORD" in config["frontend"]:
@@ -401,8 +392,7 @@ def main(config):
     args["backends"] = backends
     args["auth_username"] = auth_username
     args["auth_password"] = auth_password
-    args["auth_scrypt"] = auth_scrypt
-    args["auth_scrypt_salt"] = auth_scrypt_salt
+    args["auth_sha512"] = auth_sha512
     args["auth_mode"] = auth_mode
     args["backend_mode"] = backend_mode
     args["database_hostname"] = database_hostname
